@@ -3,7 +3,7 @@
 //! start with main.zig instead.
 const std = @import("std");
 const testing = std.testing;
-const json_generator = @import("json_generator.zig");
+const json_generator = @import("JsonGenerator.zig");
 
 pub export fn add(a: i32, b: i32) i32 {
     return a + b;
