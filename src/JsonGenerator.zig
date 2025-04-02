@@ -3,15 +3,24 @@ const std = @import("std");
 const print = std.debug.print;
 const File = std.fs.File;
 const JsonWriter = @import("JsonWriter.zig");
+const writeStream = std.json.writeStream;
+const StringifyOptions = std.json.StringifyOptions;
+const Allocator = std.mem.Allocator;
 
-const JsonGenerator = @This();
+pub fn JsonGenerator(comptime WriteStream: type) type {
+    return struct {
+        const Self = @This();
 
-json_writer: JsonWriter,
-trim_whitespace: bool = true,
+        writer: WriteStream,
 
-pub fn init(file: File, indent: u8, trim_whitespace: bool) JsonGenerator {
-    // set default values
-    return JsonGenerator{ .json_writer = JsonWriter{ .file = file, .indent = indent }, .trim_whitespace = trim_whitespace };
+        pub fn init(write_stream: WriteStream) Self {
+            return .{ .writer = write_stream };
+        }
+
+        pub fn write_start_object(self: *Self) anyerror!void {
+            _ = try self.writer.beginObject();
+        }
+    };
 }
 
 pub fn main() void {
@@ -28,33 +37,11 @@ pub fn main() void {
     print("Hello, world!\n", .{});
 }
 
-// This is a doc test
-test main {
-    main();
-}
-
-test "test slice types" {
-    const array = [_]i32{ 0, 1, 2, 3, 4 };
-    print("{any}\n", .{array[0..3]});
-    print("{any}\n", .{@TypeOf(array[0..3])});
-
-    print("\n", .{});
-
-    var runtime_zero: usize = 0;
-    _ = &runtime_zero;
-    print("{any}\n", .{array[runtime_zero..3]});
-    print("{any}\n", .{@TypeOf(array[runtime_zero..3])});
-}
-
-test init {
-    var file = try std.fs.cwd().createFile("/Users/damontingey/personal/zson/test.txt", .{});
+test JsonGenerator {
+    const file = try std.fs.cwd().createFile("/Users/damontingey/personal/zson/test.txt", .{});
     defer file.close();
-    const json_generator = init(file, 0, false);
-    _ = &json_generator;
-}
-
-test "file json ge" {
-    var file = try std.fs.cwd().createFile("/Users/damontingey/personal/zson/test.txt", .{});
-    defer file.close();
-    print("{any}\n", .{@TypeOf(file)});
+    const out_stream = file.writer();
+    const write_stream = writeStream(out_stream, .{ .whitespace = .indent_2 });
+    var json_generator = JsonGenerator(@TypeOf(write_stream)).init(write_stream);
+    _ = try json_generator.write_start_object();
 }
