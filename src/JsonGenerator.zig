@@ -2,10 +2,14 @@
 const std = @import("std");
 const print = std.debug.print;
 const File = std.fs.File;
-const JsonWriter = @import("JsonWriter.zig");
 const writeStream = std.json.writeStream;
 const StringifyOptions = std.json.StringifyOptions;
 const Allocator = std.mem.Allocator;
+
+// pub fn jsonGenerator(out_stream: anytype, options: StringifyOptions) JsonGenerator(@TypeOf(out_stream)) {
+//     const write_stream = writeStream(out_stream, options);
+//     return JsonGenerator(@TypeOf(write_stream)).init(write_stream);
+// }
 
 pub fn JsonGenerator(comptime WriteStream: type) type {
     return struct {
@@ -28,6 +32,7 @@ pub fn main() void {
         \\test multiline stuff
         \\very cool
         \\i don't know if I like it but it is cool.
+        \\what is up
         \\I will use this in the json generator
     ;
     var x: i32 = 1;
@@ -45,3 +50,11 @@ test JsonGenerator {
     var json_generator = JsonGenerator(@TypeOf(write_stream)).init(write_stream);
     _ = try json_generator.write_start_object();
 }
+
+// test jsonGenerator {
+//     const file = try std.fs.cwd().createFile("/Users/damontingey/personal/zson/test.txt", .{});
+//     defer file.close();
+//     const out_stream = file.writer();
+//     var json_generator = jsonGenerator(out_stream, .{ .whitespace = .indent_2 });
+//     _ = try json_generator.write_start_object();
+// }
